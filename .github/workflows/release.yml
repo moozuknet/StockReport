@@ -1,0 +1,51 @@
+name: Auto Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build StockReport Executable & Release
+    runs-on: windows-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyQt5 playwright requests beautifulsoup4 pytest pyinstaller
+
+      - name: Install Playwright Chromium
+        run: |
+          playwright install chromium
+
+      - name: Build Executable via PyInstaller
+        run: |
+          pyinstaller --noconfirm --onedir --windowed --icon=app_icon.ico --add-data "app_icon.png;." --add-data "app_icon.ico;." --name StockReport main.py
+
+      - name: Compress Release Artifact
+        shell: powershell
+        run: |
+          Compress-Archive -Path dist/StockReport/* -DestinationPath "StockReport_${{ github.ref_name }}_win64.zip" -Force
+
+      - name: Create GitHub Release and Upload Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "${{ github.ref_name }}: StockReport Release"
+          body_path: README.md
+          files: "StockReport_${{ github.ref_name }}_win64.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
