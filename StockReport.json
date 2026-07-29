@@ -1,7 +1,7 @@
 {
-  "save_dir": "G:\\내 드라이브\\주식\\증권사별리포트",
+  "save_dir": "",
   "use_date_folder": true,
-  "interval_minutes": 10,
+  "interval_minutes": 0,
   "selected_sites": {
     "교보증권": true,
     "미래에셋증권": true,
@@ -13,10 +13,10 @@
     "네이버_투자정보": true
   },
   "date_mode": "today",
-  "single_date": "2026-07-29",
-  "start_date": "2026-07-29",
-  "end_date": "2026-07-29",
-  "telegram_enabled": true,
-  "telegram_token": "5144509856:AAEiOvDCSQVXBRbySI93SQHwHW4DQ2Jitx8",
-  "telegram_chat_id": "56061182"
+  "single_date": "",
+  "start_date": "",
+  "end_date": "",
+  "telegram_enabled": false,
+  "telegram_token": "",
+  "telegram_chat_id": ""
 }
