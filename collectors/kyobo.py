@@ -3,8 +3,7 @@ import time
 from pathlib import Path
 from datetime import datetime
 from typing import Callable
-from playwright.sync_api import sync_playwright
-from collectors.base import BaseCollector
+from collectors.base import BaseCollector, launch_playwright_browser
 from utils import USER_AGENT, format_date, clean_filename, is_similar_file_exists
 
 class KyoboCollector(BaseCollector):
@@ -21,7 +20,7 @@ class KyoboCollector(BaseCollector):
         count = 0
 
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
+            browser = launch_playwright_browser(p)
             context = browser.new_context(user_agent=USER_AGENT)
             page = context.new_page()
 
