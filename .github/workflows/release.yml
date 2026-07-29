@@ -32,14 +32,14 @@ jobs:
         run: |
           playwright install chromium
 
-      - name: Build Executable via PyInstaller
+      - name: Build Single Executable via PyInstaller (--onefile)
         run: |
-          pyinstaller --noconfirm --onedir --windowed --icon=app_icon.ico --add-data "app_icon.png;." --add-data "app_icon.ico;." --name StockReport main.py
+          pyinstaller --noconfirm --onefile --windowed --icon=app_icon.ico --add-data "app_icon.png;." --add-data "app_icon.ico;." --name StockReport main.py
 
-      - name: Compress Release Artifact
+      - name: Compress Single Executable Only
         shell: powershell
         run: |
-          Compress-Archive -Path dist/StockReport/* -DestinationPath "StockReport_${{ github.ref_name }}_win64.zip" -Force
+          Compress-Archive -Path dist/StockReport.exe -DestinationPath "StockReport_${{ github.ref_name }}_win64.zip" -Force
 
       - name: Create GitHub Release and Upload Asset
         uses: softprops/action-gh-release@v2

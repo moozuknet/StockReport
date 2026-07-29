@@ -116,11 +116,11 @@ run.bat
 PyInstaller를 이용하여 독립형 윈도우 실행 파일(`StockReport.exe`)로 패키징합니다.
 
 ```bash
-py -3.13 -m PyInstaller --noconfirm --onedir --windowed --icon=app_icon.ico --add-data "app_icon.png;." --add-data "app_icon.ico;." --name StockReport main.py
+py -3.13 -m PyInstaller --noconfirm --onefile --windowed --icon=app_icon.ico --add-data "app_icon.png;." --add-data "app_icon.ico;." --name StockReport main.py
 ```
 
-- **빌드 결과물 위치**: `dist/StockReport/StockReport.exe`
-- 생성된 `dist/StockReport` 폴더 전체를 배포하거나 `StockReport.exe`를 실행하시면 파이썬 환경이 없는 윈도우 PC에서도 즉시 구동됩니다.
+- **빌드 결과물 위치**: `dist/StockReport.exe`
+- 생성된 `StockReport.exe` 단일 실행 파일만 배포하면 파이썬 환경이 없는 윈도우 PC에서도 즉시 구동됩니다.
 
 ---
 
