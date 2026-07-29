@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Callable
 from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
 from collectors.base import BaseCollector, launch_playwright_browser
 from utils import USER_AGENT, format_date, clean_filename, parse_company_and_title, is_similar_file_exists
 

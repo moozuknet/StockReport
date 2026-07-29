@@ -3,6 +3,7 @@ import time
 from pathlib import Path
 from datetime import datetime
 from typing import Callable
+from playwright.sync_api import sync_playwright
 from collectors.base import BaseCollector, launch_playwright_browser
 from utils import USER_AGENT, format_date, clean_filename, is_similar_file_exists
 
