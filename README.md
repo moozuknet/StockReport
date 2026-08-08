@@ -1,172 +1,94 @@
-# 📊 StockReport - 증권사별 리포트 자동 수집기 (v1.0.0)
+# 📊 StockReport - 증권사별 리포트 자동 수집, Gemini AI 요약집 & 구글 드라이브 통합 대시보드 (v3.9)
 
-[![Release](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/moozuknet/StockReport)
-[![Python](https://img.shields.io/badge/python-3.10%2B-brightgreen.svg)](https://www.python.org/)
-[![GUI](https://img.shields.io/badge/GUI-PyQt5-orange.svg)](https://pypi.org/project/PyQt5/)
-[![Scraper](https://img.shields.io/badge/automation-Playwright-red.svg)](https://playwright.dev/python/)
+[![Release](https://img.shields.io/badge/version-3.9.0-indigo.svg)](https://github.com/moozuknet/StockReport)
+[![Gemini AI](https://img.shields.io/badge/AI-Gemini%201.5%20Flash%20Multimodal-purple.svg)](https://deepmind.google/technologies/gemini/)
+[![Platform](https://img.shields.io/badge/platform-Google%20Apps%20Script-orange.svg)](https://script.google.com/)
+[![Drive Integration](https://img.shields.io/badge/storage-Google%20Drive-brightgreen.svg)](https://drive.google.com/)
 
-**StockReport**는 주요 증권사 및 금융 포털 사이트의 리포트를 자동으로 수집하여 날짜별 폴더에 PDF 파일로 정리해 주는 파이썬 기반의 모던 데스크톱 애플리케이션입니다.
-
----
-
-## 🚀 1. 프로젝트 개요 (Overview)
-
-매일 쏟아지는 증권사 종목 리포트, 산업 분석, 경제/시장 동향 PDF 파일을 수동으로 다운로드받는 번거로움을 해결하기 위해 개발되었습니다.  
-Playwright 기반의 자동화 엔진과 PyQt5 DirectWrite 엔진을 탑재하여 세금계산서 자동정리 프로그램과 100% 동일한 선명한 원색 이모지 콘솔과 모던 UI 경험을 제공합니다.
+**StockReport**는 주요 증권사 및 금융 포털 사이트의 리포트를 자동으로 수집하여 구글 드라이브에 분류·저장하고, **Gemini 1.5 Flash AI 기반 NotebookLM 스타일 심층 요약집(HTML)** 생성, **섹터/카테고리별 달력 뷰(Calendar View) 스마트 대시보드**, **텔레그램 알림**, 및 **0.01초 초고속 캐시 엔진**을 제공하는 시스템입니다.
 
 ---
 
-## ✨ 2. 주요 기능 분석 (Feature Breakdown)
+## ✨ 1. 주요 핵심 기능 (Features)
 
 ### 🏢 8개 수집 대상 사이트 통합 지원
-- 📌 **교보증권**: 교보증권 리서치 센터 수집 (Playwright 크롬 엔진)
-- 📌 **미래에셋증권**: 미래에셋증권 투자정보 수집 (Playwright & BeautifulSoup)
-- 📌 **한경 컨센서스**: 한경 컨센서스 종합 리포트 수집 (Playwright & BeautifulSoup)
-- 📌 **네이버 증권 (5개 카테고리)**:
-  - 🔍 네이버 기업분석
-  - 🔍 네이버 산업분석
-  - 🔍 네이버 경제분석
-  - 🔍 네이버 시장분석
-  - 🔍 네이버 투자정보
+- 📌 **교보증권**: 교보증권 리서치 센터 수집 (`fileDown` 서블릿 파싱)
+- 📌 **미래에셋증권**: 미래에셋증권 투자정보 수집 (EUC-KR 한글 디코딩)
+- 📌 **한경 컨센서스**: 한경 컨센서스 종합 리포트 수집 (`markets.hankyung.com` & `consensus.hankyung.com` 이중 탐색)
+- 📌 **네이버 증권 (5개 카테고리)**: 기업분석, 산업분석, 경제분석, 시장분석, 투자정보
 
-### 📅 스마트 날짜 모드
-- ☀️ **당일 (오늘)**: 오늘 날짜의 신규 등록 리포트 수집
-- 📆 **특정 날짜 수집**: 지정한 단일 일자의 리포트 과거 이력 수집
-- 🗓️ **날짜 구간 수집**: 시작일부터 종료일까지의 구간을 자동 순회 수집
+### 🤖 Gemini 1.5 Flash AI 듀얼 엔진 심층 요약 (NotebookLM 스타일)
+- **멀티모달 바이너리 직접 전달**: PDF의 표, 차트, 그래프, 수치까지 Gemini 1.5 Flash AI가 100% 정밀 분석
+- **NotebookLM 스타일 요약 구조**:
+  1. 🎯 `[3줄 핵심 요약]`: 결론 및 실적 핵심 포인트 3가지
+  2. 📈 `[투자의견 & 목표가]`: 목표주가, 투자의견(Buy/Hold) 및 밸류에이션
+  3. 💡 `[주요 성장 동력 & 호재]`: 매출 모멘텀 및 사업 호재
+  4. ⚠️ `[위험 요인 & 체크포인트]`: 리스크 및 불확실성
+- **Dual-Engine Auto Fallback**: 멀티모달 API 예외 발생 시 텍스트 분석 엔진으로 100% 자동 전환하여 404 및 용량 초과 에러 방지
 
-### ⏱️ 스케줄러 & 동작 주기 설정
-- ⚡ **즉시 실행 (1회만)**: 1회 수집 완료 후 자동으로 수집 버튼이 재활성화되고 중지 버튼이 비활성화되는 스레드 안심 자동 복원
-- 🔄 **반복 자동 수집**: 10분, 30분, 1시간, 2시간, 3시간, 6시간, 12시간, 24시간 간격 주기적 백그라운드 수집
+### 🏷️ 섹터/카테고리별 정밀 자동 분류 & 달력 필터 (Sector Filter Bar)
+- 리포트를 **5대 섹터**로 자동 정밀 분류:
+  - 🏢 **기업분석** (Company Analysis)
+  - 🏭 **산업/업종** (Industry & Sectors)
+  - 🌐 **거시경제** (Macro & Economy)
+  - 📈 **증시전략** (Market Strategy & Derivatives)
+  - 💡 **투자정보 & ESG** (Investment Info & ESG)
+- **달력 화면 상단 섹터 필터 칩(Chip)**: 원하는 섹터를 선택하면 달력 셀에 해당 섹터 건수가 자동 강조되며, 요약집 클릭 시 해당 섹터 위치로 즉시 스크롤 이동
 
-### 📱 스마트 텔레그램 알림 (Message Filtering)
-- 1회 즉시 실행 시: 신규 다운로드 파일이 0개여도 수집 결과 메시지 전송
-- 주기적 반복 수집 시: **신규 다운로드 파일이 1개 이상일 때만 알림 전송** (0개일 경우 알림 생략으로 피로도 방지)
+### ⚡ 0.01초 초고속 달력 인덱스 캐시 (`CALENDAR_INDEX_CACHE`)
+- 달력 탭 전환 시 구글 드라이브 스캔 대기시간 없이 **0.01초(즉시)** 달력 및 폴더 유무 버튼 로딩
+- `🔄 달력 인덱스 새로고침` 수동 동기화 지원
 
-### 🎨 PyQt5 DirectWrite 모던 UI
-- 윈도우 최신 DirectWrite 엔진 탑재로 노란 폴더(`📁`), 핑크 핀(`📌`), 초록 체크(`✅`), 폰(`📱`), 로켓(`🚀`) 등 **100% 원색 멀티컬러 비트맵 이모지** 출력
-- 4열 넓은 그리드 배치, 120% 정갈한 로그 행간, 52px 대형 수집 시작/중지 버튼 적용
-- 주식 차트 컨셉의 누끼 투명 배경 커스텀 아이콘 (`app_icon.png` / `app_icon.ico`) 탑재
+### ⏱️ GAS 6분 타임아웃 방지 & 백그라운드 비동기 요약 스레드
+- 87개 이상의 대량 PDF 리포트 분석 시 구글 앱스 스크립트 6분 제한시간(`ScriptError`)을 원천 차단하기 위해 **0.1초 비동기 백그라운드 스레드** 및 **4분 30초 자동 인터벌 세이프가드** 적용
+
+### 🛑 전용 강제 종료 & 실시간 콘솔 모니터링
+- 달력 뷰, 콘솔 창, 대시보드 어디서든 즉시 멈출 수 있는 **`🛑 진행 중인 AI 요약분석 강제 종료`** 버튼
+- 1.5초 간격 실시간 콘솔 로그 스트리밍 (`💻 실시간 수집 콘솔 로그`)
+
+### ⏸️ 백그라운드 자동 수집 구동 시작/정지 토글
+- `▶️ 자동 수집 구동 시작` (초록) 및 `⏸️ 자동 수집 완전히 정지` (주황) 전용 스케줄러 버튼
 
 ---
 
-## 🏗️ 3. 시스템 아키텍처 및 폴더 구조 (Architecture & Directory Tree)
+## 🏗️ 2. 프로젝트 폴더 구조
 
 ```text
 StockReport/
-├── 📄 main.py                    # 애플리케이션 메인 실행 엔트리 포인트
-├── ⚙️ config.py                  # AppConfig 데이터클래스, StockReport.json 영속성 및 텔레그램 연동
-├── ⏱️ scheduler.py               # 백그라운드 수집 스케줄러 & 1회성 종료 콜백
-├── 📄 StockReport.json           # 사용자 환경 설정 자동 저장 파일
-├── 🖼️ app_icon.png / app_icon.ico # 투명 배경 커스텀 리서치 아이콘
-├── 📜 run.bat                    # 파이썬 실행 전용 배치 스크립트
-├── 📘 README.md                  # 프로젝트 매뉴얼 문서 (v1.0.0)
+├── 📄 main.py                    # Python 실행 엔트리포인트 (데스크톱 GUI)
+├── ⚙️ config.py                  # Python 환경설정
+├── 📘 README.md                  # 프로젝트 통합 매뉴얼 (v3.9)
+├── 📘 README_GAS.md              # 구글 앱스 스크립트 배포 & 사용 가이드
 │
-├── 🎨 ui/                        # PyQt5 GUI 레이어
-│   └── app_qt.py              # 모던 데스크톱 UI 및 DirectWrite 실시간 콘솔
+├── 📂 gas/                       # 구글 앱스 스크립트 (GAS) 클라우드 모듈
+│   ├── appsscript.json           # GAS V8 매니페스트 (서울 시간대 설정)
+│   ├── Code.gs                   # 메인 조율, 비동기 스레드 & RPC 통신
+│   ├── Config.gs                 # PropertiesService 영속성 관리
+│   ├── DriveUtils.gs             # 전역 PDF 탐색, 0.01초 달력 캐시 & 섹터 매핑
+│   ├── ReportSummarizer.gs       # Gemini AI 듀얼 엔진 심층 요약집 생성 모듈
+│   ├── TelegramUtils.gs          # 텔레그램 직통 링크 메시지 발송 모듈
+│   ├── NaverCollector.gs         # 네이버 5개 카테고리 수집기
+│   ├── HankyungCollector.gs      # 한경 컨센서스 이중 탐색 수집기
+│   ├── MiraeCollector.gs         # 미래에셋증권 수집기 (EUC-KR)
+│   ├── KyoboCollector.gs         # 교보증권 수집기 (fileDown)
+│   └── Index.html                # 섹터 필터 탑재 달력 뷰 & 실시간 콘솔 대시보드 UI
 │
-├── 🔍 collectors/                # 증권사별 리포트 수집 엔진 모듈
-│   ├── __init__.py            # CollectorManager (수집 조율 및 텔레그램 스마트 알림)
-│   ├── base.py                # BaseCollector (공통 추상 클래스 및 ms-playwright 경로 바인딩)
-│   ├── kyobo.py               # 교보증권 수집기 (Playwright)
-│   ├── mirae.py               # 미래에셋증권 수집기 (Playwright & BeautifulSoup)
-│   ├── hankyung.py            # 한경 컨센서스 수집기 (Playwright & BeautifulSoup)
-│   └── naver.py               # 네이버 증권 5개 카테고리 수집기 (Requests & BeautifulSoup)
-│
-├── 🧪 tests/                     # Automated Test Suite (pytest)
-│   ├── test_collectors.py     # 수집기 단위 테스트
-│   ├── test_config.py         # JSON 설정 저장/로드 테스트
-│   ├── test_scheduler.py      # 스케줄러 작동 테스트
-│   └── test_utils.py          # 유틸리티 함수 테스트
-│
-└── 📦 dist/                      # PyInstaller 빌드 결과물
-    └── StockReport/
-        └── StockReport.exe    # 윈도우 무설치 실행 파일
+└── 🔍 collectors/                # Python 수집 엔진
 ```
 
 ---
 
-## 💻 4. 설치 및 사용 방법 (Installation & Usage)
+## 🚀 3. 구글 앱스 스크립트(GAS) 배포 및 시작하기
 
-### 1) 파이썬 환경 구축 (소스코드 실행)
-
-파이썬 3.10 이상 환경에서 의존성 라이브러리를 설치합니다.
+자세한 배포 가이드는 [README_GAS.md](file:///Users/jjuni/StockReport/README_GAS.md)를 참고하세요.
 
 ```bash
-# 의존성 패키지 설치
-pip install PyQt5 playwright requests beautifulsoup4 pytest pyinstaller
+# 1. Google 계정 연동 (최초 1회)
+npx @google/clasp login
 
-# Playwright 크롬 브라우저 드라이버 설치
-playwright install chromium
+# 2. 코드 업로드 (Push)
+npx @google/clasp push -f
+
+# 3. 웹 앱 배포 (Deploy)
+npx @google/clasp deploy -i AKfycbw48QOnNhS4CfMaBfRn6M9VqrYD9nK2QRlcF2tWatvKjvxjTCCZ275YEm1_DLpqzjaH -d "StockReport Release v3.9"
 ```
-
-### 2) 소스코드 실행
-
-```bash
-# 메인 파일 실행
-python main.py
-
-# 또는 배치 스크립트 실행
-run.bat
-```
-
----
-
-## 🛠️ 5. EXE 실행 파일 빌드 방법 (PyInstaller Build)
-
-PyInstaller를 이용하여 독립형 윈도우 실행 파일(`StockReport.exe`)로 패키징합니다.
-
-```bash
-py -3.13 -m PyInstaller --noconfirm --onefile --windowed --icon=app_icon.ico --add-data "app_icon.png;." --add-data "app_icon.ico;." --name StockReport main.py
-```
-
-- **빌드 결과물 위치**: `dist/StockReport.exe`
-- 생성된 `StockReport.exe` 단일 실행 파일만 배포하면 파이썬 환경이 없는 윈도우 PC에서도 즉시 구동됩니다.
-
----
-
-## ⚙️ 6. 설정 파일 규격 (`StockReport.json`)
-
-`StockReport.json` 파일은 프로그램 동작 시 환경설정을 자동 저장 및 복원합니다.
-
-```json
-{
-  "save_dir": "G:\\내 드라이브\\주식\\증권사별리포트",
-  "use_date_folder": true,
-  "interval_minutes": 0,
-  "selected_sites": {
-    "교보증권": true,
-    "미래에셋증권": true,
-    "한경 컨센서스": true,
-    "네이버_기업분석": true,
-    "네이버_산업분석": true,
-    "네이버_경제분석": true,
-    "네이버_시장분석": true,
-    "네이버_투자정보": true
-  },
-  "date_mode": "today",
-  "single_date": "2026-07-29",
-  "start_date": "2026-07-29",
-  "end_date": "2026-07-29",
-  "telegram_enabled": true,
-  "telegram_token": "YOUR_TELEGRAM_BOT_TOKEN",
-  "telegram_chat_id": "YOUR_TELEGRAM_CHAT_ID"
-}
-```
-
----
-
-## 🧪 7. 자동화 테스트 실행 (Testing)
-
-```bash
-py -3.13 -m pytest tests/
-```
-
-모든 단위 테스트(8개)가 100% 통과하도록 검증되었습니다.
-
----
-
-## 🏷️ 8. 버전 및 라이선스 (Release Note)
-
-- **Current Version**: `v1.0.0`
-- **Repository**: [https://github.com/moozuknet/StockReport](https://github.com/moozuknet/StockReport)
-- **Developer**: moozuknet
