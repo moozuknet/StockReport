@@ -304,7 +304,26 @@ class StockReportQtApp(QMainWindow):
         header_layout.addWidget(header_lbl)
         main_layout.addWidget(header_card)
 
-        # 2. 사이트 선택 그룹
+        # 2. 실행 기능 선택 그룹 (체크박스로 기능 분리 선택)
+        feature_group = QGroupBox("🎯 실행 기능 선택 (원하는 작업 체크)")
+        feature_layout = QHBoxLayout(feature_group)
+        feature_layout.setContentsMargins(14, 14, 14, 14)
+        feature_layout.setSpacing(20)
+
+        self.enable_download_cb = QCheckBox("📥 증권사 리포트 다운로드 수집")
+        self.enable_download_cb.setCursor(Qt.PointingHandCursor)
+        self.enable_download_cb.setChecked(True)
+
+        self.enable_ai_summary_cb = QCheckBox("🤖 AI 리포트 분석 및 요약")
+        self.enable_ai_summary_cb.setCursor(Qt.PointingHandCursor)
+        self.enable_ai_summary_cb.setChecked(True)
+
+        feature_layout.addWidget(self.enable_download_cb)
+        feature_layout.addWidget(self.enable_ai_summary_cb)
+        feature_layout.addStretch()
+        main_layout.addWidget(feature_group)
+
+        # 3. 사이트 선택 그룹
         site_group = QGroupBox("수집 대상 사이트 선택")
         site_layout = QVBoxLayout(site_group)
         site_layout.setContentsMargins(14, 14, 14, 14)
@@ -351,8 +370,8 @@ class StockReportQtApp(QMainWindow):
         site_layout.addLayout(grid)
         main_layout.addWidget(site_group)
 
-        # 3. 저장 경로, 날짜 & 스케줄 동작 주기 설정 그룹
-        settings_group = QGroupBox("저장 경로, 날짜, 동작 주기 & 텔레그램 설정")
+        # 4. 저장 경로, 날짜, AI 키 & 스케줄 동작 주기 설정 그룹
+        settings_group = QGroupBox("저장 경로, 날짜, AI & 텔레그램 설정")
         settings_layout = QVBoxLayout(settings_group)
         settings_layout.setContentsMargins(14, 14, 14, 14)
         settings_layout.setSpacing(10)
@@ -388,6 +407,17 @@ class StockReportQtApp(QMainWindow):
         self.auto_subfolder_cb = QCheckBox("날짜별 하위 폴더 자동 생성 (예: Downloads/20260729)")
         self.auto_subfolder_cb.setCursor(Qt.PointingHandCursor)
         settings_layout.addWidget(self.auto_subfolder_cb)
+
+        # Gemini API Key 설정
+        gemini_layout = QHBoxLayout()
+        gemini_lbl = QLabel("🤖 Gemini API Key:")
+        gemini_lbl.setFont(QFont("맑은 고딕", 9, QFont.Bold))
+        self.gemini_key_edit = QLineEdit()
+        self.gemini_key_edit.setPlaceholderText("Google Gemini API Key 입력 (미입력 시 자체 요약 모드로 작동)")
+        self.gemini_key_edit.setEchoMode(QLineEdit.PasswordEchoOnEdit)
+        gemini_layout.addWidget(gemini_lbl)
+        gemini_layout.addWidget(self.gemini_key_edit)
+        settings_layout.addLayout(gemini_layout)
 
         # 동작 주기 (스케줄러 주기) 설정
         interval_layout = QHBoxLayout()
@@ -562,6 +592,10 @@ class StockReportQtApp(QMainWindow):
         main_layout.addWidget(self.log_panel, stretch=1)
 
     def _connect_ui_signals(self):
+        self.enable_download_cb.stateChanged.connect(self._save_ui_to_config)
+        self.enable_ai_summary_cb.stateChanged.connect(self._save_ui_to_config)
+        self.gemini_key_edit.editingFinished.connect(self._save_ui_to_config)
+
         for cb in self.site_checkboxes.values():
             cb.stateChanged.connect(self._save_ui_to_config)
 
@@ -614,6 +648,10 @@ class StockReportQtApp(QMainWindow):
 
     def _load_config_to_ui(self):
         c = self.config
+        self.enable_download_cb.setChecked(c.enable_report_download)
+        self.enable_ai_summary_cb.setChecked(c.enable_ai_summary)
+        self.gemini_key_edit.setText(c.gemini_api_key)
+
         for site_key, cb in self.site_checkboxes.items():
             cb.setChecked(c.selected_sites.get(site_key, True))
 
@@ -654,6 +692,10 @@ class StockReportQtApp(QMainWindow):
             return
 
         c = self.config
+        c.enable_report_download = self.enable_download_cb.isChecked()
+        c.enable_ai_summary = self.enable_ai_summary_cb.isChecked()
+        c.gemini_api_key = self.gemini_key_edit.text().strip()
+
         for site_key, cb in self.site_checkboxes.items():
             c.selected_sites[site_key] = cb.isChecked()
 

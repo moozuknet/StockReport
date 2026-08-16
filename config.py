@@ -31,6 +31,11 @@ class AppConfig:
     start_date: Union[date, datetime] = field(default_factory=lambda: datetime.now().date())
     end_date: Union[date, datetime] = field(default_factory=lambda: datetime.now().date())
 
+    # 기능 선택 체크박스 옵션
+    enable_report_download: bool = True  # 증권사 리포트 다운로드 수집 기능
+    enable_ai_summary: bool = True      # AI 분석 및 요약 기능
+    gemini_api_key: str = ""             # Google Gemini API Key
+
     # 텔레그램 알림 설정
     telegram_enabled: bool = False
     telegram_token: str = ""
@@ -89,6 +94,9 @@ class AppConfig:
             "single_date": self.single_date.strftime("%Y-%m-%d") if isinstance(self.single_date, (date, datetime)) else str(self.single_date),
             "start_date": self.start_date.strftime("%Y-%m-%d") if isinstance(self.start_date, (date, datetime)) else str(self.start_date),
             "end_date": self.end_date.strftime("%Y-%m-%d") if isinstance(self.end_date, (date, datetime)) else str(self.end_date),
+            "enable_report_download": self.enable_report_download,
+            "enable_ai_summary": self.enable_ai_summary,
+            "gemini_api_key": self.gemini_api_key,
             "telegram_enabled": self.telegram_enabled,
             "telegram_token": self.telegram_token,
             "telegram_chat_id": self.telegram_chat_id
@@ -130,6 +138,13 @@ class AppConfig:
                 config.start_date = datetime.strptime(data["start_date"], "%Y-%m-%d").date()
             if "end_date" in data:
                 config.end_date = datetime.strptime(data["end_date"], "%Y-%m-%d").date()
+
+            if "enable_report_download" in data:
+                config.enable_report_download = data["enable_report_download"]
+            if "enable_ai_summary" in data:
+                config.enable_ai_summary = data["enable_ai_summary"]
+            if "gemini_api_key" in data:
+                config.gemini_api_key = data["gemini_api_key"]
 
             if "telegram_enabled" in data:
                 config.telegram_enabled = data["telegram_enabled"]

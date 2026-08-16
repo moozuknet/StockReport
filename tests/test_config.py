@@ -15,6 +15,9 @@ def test_app_config_json_save_load(tmp_path: Path):
     config.selected_sites["미래에셋증권"] = True
     config.date_mode = "single"
     config.single_date = date(2026, 7, 25)
+    config.enable_report_download = True
+    config.enable_ai_summary = False
+    config.gemini_api_key = "AIzaSyTestKey123"
     config.telegram_enabled = True
     config.telegram_token = "123456:ABC-DEF"
     config.telegram_chat_id = "987654321"
@@ -30,6 +33,10 @@ def test_app_config_json_save_load(tmp_path: Path):
     assert loaded_config.selected_sites["미래에셋증권"] is True
     assert loaded_config.date_mode == "single"
     assert loaded_config.single_date == date(2026, 7, 25)
+    assert loaded_config.enable_report_download is True
+    assert loaded_config.enable_ai_summary is False
+    assert loaded_config.gemini_api_key == "AIzaSyTestKey123"
     assert loaded_config.telegram_enabled is True
     assert loaded_config.telegram_token == "123456:ABC-DEF"
     assert loaded_config.telegram_chat_id == "987654321"
+

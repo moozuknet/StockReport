@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockReport - 증권 리포트 AI 요약 달력 & 대시보드</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;600;700&family=Outfit:wght@400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --card-bg: rgba(22, 30, 46, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(99, 102, 241, 0.5);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --console-bg: #0b0f19;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: radial-gradient(circle at top center, #1e1b4b 0%, #090d16 60%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 24px 16px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-title h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a5b4fc 0%, #38bdf8 50%, #34d399 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .version-tag {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #6ee7b7;
+      font-weight: 600;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+    }
+
+    /* Tab Navigation Bar */
+    .tab-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 10px;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 10px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn.active {
+      color: #ffffff;
+      background: var(--primary);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    /* Tab Contents */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 868px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Card Styling */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: var(--card-hover-border);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #e0e7ff;
+    }
+
+    /* Sites Grid */
+    .sites-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 10px;
+    }
+
+    .checkbox-tile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+
+    .checkbox-tile:hover {
+      background: rgba(99, 102, 241, 0.08);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .checkbox-tile input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .checkbox-tile label {
+      cursor: pointer;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-main);
+      flex: 1;
+    }
+
+    /* Form Inputs */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .input-text, .select-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .input-text:focus, .select-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13.5px;
+      cursor: pointer;
+    }
+
+    .radio-label input[type="radio"] {
+      accent-color: var(--primary);
+    }
+
+    .date-inputs-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    /* Action Buttons */
+    .actions-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex: 1;
+      min-width: 170px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, #4338ca 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* Console Logs */
+    .console-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .console-box {
+      background: var(--console-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+      height: 320px;
+      overflow-y: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .log-line { margin-bottom: 2px; }
+    .log-info { color: #94a3b8; }
+    .log-success { color: #34d399; }
+    .log-warning { color: #fbbf24; }
+    .log-error { color: #f87171; }
+
+    /* Calendar & Sector Filtering */
+    .calendar-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .calendar-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #e0e7ff;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .cal-nav-btn {
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .cal-nav-btn:hover {
+      background: rgba(99,102,241,0.2);
+    }
+
+    .cal-nav-btn.today-btn {
+      background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+      border: none;
+      color: #ffffff;
+      font-weight: 700;
+      box-shadow: 0 2px 10px rgba(6, 182, 212, 0.4);
+    }
+
+    .cal-nav-btn.today-btn:hover {
+      background: linear-gradient(135deg, #0891b2 0%, #2563eb 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.6);
+    }
+
+    /* Sector Filter Bar */
+    .sector-filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      flex-wrap: wrap;
+    }
+
+    .sector-filter-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #a5b4fc;
+      margin-right: 4px;
+    }
+
+    .sector-chip {
+      padding: 6px 14px;
+      font-size: 12.5px;
+      font-weight: 600;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .sector-chip:hover {
+      background: rgba(99, 102, 241, 0.2);
+      color: #ffffff;
+    }
+
+    .sector-chip.active {
+      background: linear-gradient(135deg, var(--primary) 0%, #38bdf8 100%);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .cal-day-header {
+      text-align: center;
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--text-muted);
+      padding: 6px 0;
+    }
+
+    .cal-day-header.sun { color: #f87171; }
+    .cal-day-header.sat { color: #38bdf8; }
+
+    .cal-cell {
+      min-height: 110px;
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .cal-cell.empty {
+      background: transparent;
+      border-color: transparent;
+    }
+
+    .cal-cell:hover:not(.empty) {
+      border-color: var(--card-hover-border);
+      background: rgba(30, 41, 59, 0.9);
+    }
+
+    .cal-cell.today-cell {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(6, 182, 212, 0.2) 100%) !important;
+      border: 2px solid #38bdf8 !important;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4), inset 0 0 14px rgba(99, 102, 241, 0.3) !important;
+    }
+
+    /* Clean Header Row inside Day Cell (ZERO Overlap Guarantee) */
+    .cell-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      gap: 2px;
+      margin-bottom: 2px;
+      flex-wrap: wrap;
+    }
+
+    .day-info-box {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .cal-day-num {
+      font-size: 13px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+
+    .cal-day-num.today {
+      color: #38bdf8;
+      font-weight: 800;
+    }
+
+    .today-badge {
+      font-size: 9px;
+      font-weight: 800;
+      color: #ffffff;
+      background: linear-gradient(135deg, #06b6d4, #6366f1);
+      padding: 1px 4px;
+      border-radius: 999px;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .pdf-count-pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 999px;
+      background: rgba(6, 182, 212, 0.2);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      color: #38bdf8;
+      white-space: nowrap;
+    }
+
+    .sector-icons-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      margin: 3px 0;
+    }
+
+    .sec-icon {
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+
+    .icon-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 4px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+
+    .icon-btn {
+      width: 26px;
+      height: 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 13px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: none;
+      user-select: none;
+    }
+
+    .icon-btn.pdf-btn {
+      background: rgba(244, 63, 94, 0.2);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: #fda4af;
+    }
+
+    .icon-btn.pdf-btn:hover {
+      background: rgba(244, 63, 94, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .icon-btn.doc-btn {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #a7f3d0;
+    }
+
+    .icon-btn.doc-btn:hover {
+      background: rgba(16, 185, 129, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .icon-btn.folder-btn {
+      background: rgba(56, 189, 248, 0.2);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #7dd3fc;
+    }
+
+    .icon-btn.folder-btn:hover {
+      background: rgba(56, 189, 248, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .icon-btn.action-btn {
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
+    }
+
+    .icon-btn.action-btn:hover {
+      background: rgba(99, 102, 241, 0.5);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #ffffff;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-title">
+      <span style="font-size: 28px;">📊</span>
+      <h1>StockReport Cloud Dashboard</h1>
+      <span class="version-tag">v6.0 (리포트 요약 달력 메인 화면 전환)</span>
+    </div>
+    <div class="status-badge">
+      <span class="status-dot"></span>
+      <span id="triggerStatusText">구글 앱스 스크립트 연결됨</span>
+    </div>
+  </div>
+
+  <!-- Tab Navigation Bar (Swapped: Calendar is Tab 1 Main View) -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('calendar')">
+      <span>📅 리포트 요약 달력 (Calendar Main)</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('dashboard')">
+      <span>⚙️ 수집 &amp; 설정 대시보드</span>
+    </button>
+  </div>
+
+  <!-- Tab 1: Calendar View (PRIMARY MAIN DEFAULT VIEW) -->
+  <div id="tabCalendar" class="tab-content active">
+    <div class="card">
+      <div class="calendar-controls">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <button class="cal-nav-btn" onclick="changeMonth(-1)">◀ 이전 달</button>
+          <div class="calendar-title" id="calendarTitle">📅 2026년 8월</div>
+          <button class="cal-nav-btn" onclick="changeMonth(1)">다음 달 ▶</button>
+          <button class="cal-nav-btn today-btn" onclick="goToToday()">☀️ 오늘 바로가기</button>
+          <button class="cal-nav-btn" style="background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.4);" onclick="onSyncCalendarClick()">🔄 달력 인덱스 새로고침</button>
+        </div>
+      </div>
+
+      <!-- Sector Filter Bar -->
+      <div class="sector-filter-bar">
+        <span class="sector-filter-title">🏷️ 섹터/카테고리 필터:</span>
+        <button class="sector-chip active" id="chip_ALL" onclick="filterCalendarSector('ALL')">🌐 전체 보기</button>
+        <button class="sector-chip" id="chip_기업분석" onclick="filterCalendarSector('기업분석')">🏢 기업분석</button>
+        <button class="sector-chip" id="chip_산업업종" onclick="filterCalendarSector('산업/업종')">🏭 산업/업종</button>
+        <button class="sector-chip" id="chip_거시경제" onclick="filterCalendarSector('거시경제')">🌐 거시경제</button>
+        <button class="sector-chip" id="chip_증시전략" onclick="filterCalendarSector('증시전략')">📈 증시전략</button>
+        <button class="sector-chip" id="chip_투자정보" onclick="filterCalendarSector('투자정보')">💡 투자정보</button>
+      </div>
+
+      <div class="calendar-grid">
+        <div class="cal-day-header sun">☀️ 일</div>
+        <div class="cal-day-header">🌙 월</div>
+        <div class="cal-day-header">🔥 화</div>
+        <div class="cal-day-header">💧 수</div>
+        <div class="cal-day-header">🌲 목</div>
+        <div class="cal-day-header">⚡ 금</div>
+        <div class="cal-day-header sat">🪐 토</div>
+      </div>
+
+      <div class="calendar-grid" id="calendarGrid" style="margin-top: 10px;">
+        <!-- Dynamic Calendar Cells -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Dashboard & Settings View -->
+  <div id="tabDashboard" class="tab-content">
+    <!-- Main Forms Grid -->
+    <div class="dashboard-grid">
+      <!-- Card 0: Execution Feature Selection -->
+      <div class="card" style="grid-column: 1 / -1; background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%); border: 1px solid rgba(99, 102, 241, 0.4);">
+        <div class="card-title" style="color: #a5b4fc; font-size: 16px;">
+          <span>🎯</span> 실행 기능 선택 (원하는 작업 체크)
+        </div>
+        <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 10px;">
+          <label class="checkbox-tile" style="flex: 1; min-width: 220px; padding: 14px 18px; border: 1px solid rgba(99, 102, 241, 0.3);">
+            <input type="checkbox" id="enableReportDownloadInput" checked>
+            <span style="font-weight: 700; font-size: 14.5px;">📥 증권사 리포트 다운로드 수집</span>
+          </label>
+          <label class="checkbox-tile" style="flex: 1; min-width: 220px; padding: 14px 18px; border: 1px solid rgba(99, 102, 241, 0.3);">
+            <input type="checkbox" id="enableAiSummaryInput" checked>
+            <span style="font-weight: 700; font-size: 14.5px;">🤖 AI 리포트 분석 및 요약</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Card 1: Selected Sites -->
+      <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-title">
+          <span>🏢</span> 수집 대상 사이트 선택 (8개 통합 수집)
+        </div>
+        <div class="sites-grid" id="sitesContainer">
+          <!-- JS rendered checkboxes -->
+        </div>
+      </div>
+
+      <!-- Card 2: Unified Gemini AI & Collection/Date/Storage Settings -->
+      <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-title">
+          <span>🤖</span> Gemini AI 요약 &amp; 스마트 수집/날짜/저장 통합 설정
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <!-- Left Column: Gemini API Key & Custom Prompt & Model Selection -->
+          <div>
+            <div class="form-group">
+              <label class="form-label">✨ Gemini API Key (PDF/DOC 심층 요약용)</label>
+              <input type="password" id="geminiApiKeyInput" class="input-text" placeholder="AIzaSy... (비어있으면 기본 텍스트 요약 사용)">
+            </div>
+            <div class="form-group">
+              <label class="form-label">🤖 Gemini AI 분석 모델 선택</label>
+              <select id="geminiModelSelect" class="select-input" style="width: 100%; font-size: 13px; font-weight: 500;">
+                <option value="gemini-flash-latest">⚡ Gemini Flash (최신/추천 - 100만 토큰 & 초고속)</option>
+                <option value="gemini-pro-latest">🧠 Gemini Pro (최신/고성능 - 최고 품질 심층 분석)</option>
+                <option value="gemini-2.5-flash">✨ Gemini 2.5 Flash</option>
+                <option value="gemini-2.0-flash">🚀 Gemini 2.0 Flash</option>
+                <option value="gemini-1.5-flash">📄 Gemini 1.5 Flash</option>
+                <option value="gemini-1.5-pro">💎 Gemini 1.5 Pro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">🧠 Gemini AI 맞춤 요약 프롬프트 (사용자 지정 프롬프트 지침)</label>
+              <textarea id="customPromptInput" class="input-text" rows="4" style="font-family: inherit; font-size: 13px; line-height: 1.5; resize: vertical;" placeholder="원하시는 AI 요약 프롬프트 지침을 입력하세요.&#10;(예: 대괄호 항목[{tag}]에 대해 주주환원, 목표주가, 핵심 실적 전망 위주로 3줄 상세 요약해줘)"></textarea>
+              <span style="font-size: 11.5px; color: var(--text-muted); display: block; margin-top: 4px;">
+                💡 비워두시면 기본 금융 전문 분석 프롬프트가 사용됩니다. {tag}, {title} 치환 키워드를 사용할 수 있습니다.
+              </span>
+            </div>
+          </div>
+
+          <!-- Right Column: Date Settings & Storage Folders -->
+          <div>
+            <div class="form-group">
+              <label class="form-label">📅 스마트 수집 날짜 설정</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="date_mode" value="today" id="dateModeToday" onchange="onDateModeChange()"> ☀️ 당일 (오늘)
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="date_mode" value="single" id="dateModeSingle" onchange="onDateModeChange()"> 📆 특정 날짜
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="date_mode" value="range" id="dateModeRange" onchange="onDateModeChange()"> 🗓️ 날짜 구간
+                </label>
+              </div>
+            </div>
+
+            <div class="date-inputs-row" id="singleDateRow" style="display: none;">
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">지정 일자</label>
+                <input type="date" id="singleDateInput" class="input-text">
+              </div>
+            </div>
+
+            <div class="date-inputs-row" id="rangeDateRow" style="display: none;">
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">시작일</label>
+                <input type="date" id="startDateInput" class="input-text">
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label">종료일</label>
+                <input type="date" id="endDateInput" class="input-text">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 10px;">
+              <label class="form-label">📁 수집 PDF 저장 폴더 (폴더 ID / URL / 폴더명 입력)</label>
+              <input type="text" id="saveFolderIdInput" class="input-text" placeholder="예: 증권사별리포트 또는 폴더 ID/URL">
+            </div>
+            <div class="form-group">
+              <label class="form-label">📄 요약집(PDF/DOC) 전용 저장 폴더 (폴더 ID / URL / 폴더명 지정)</label>
+              <input type="text" id="summaryFolderIdInput" class="input-text" placeholder="예: 증권리포트_요약집 또는 폴더 ID/URL">
+            </div>
+            <div class="form-group" style="margin-top: 6px;">
+              <label class="checkbox-tile" style="background: transparent; border: none; padding: 0;">
+                <input type="checkbox" id="useDateFolderInput">
+                <span style="font-size: 13.5px;">📂 PDF 날짜별 하위 폴더 자동 생성 (YYYY-MM-DD)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full Width Scheduler Control Bar -->
+        <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div class="form-group" style="margin: 0; flex: 1; min-width: 240px;">
+            <label class="form-label">자동 백그라운드 수집 주기 선택</label>
+            <select id="intervalMinutesSelect" class="select-input" onchange="onIntervalSelectChange()">
+              <option value="0">⚡ 수동 전용 (자동 수집 안 함)</option>
+              <option value="10">🔄 10분마다 자동 수집</option>
+              <option value="30">🔄 30분마다 자동 수집</option>
+              <option value="60">🔄 1시간마다 자동 수집</option>
+              <option value="120">🔄 2시간마다 자동 수집</option>
+              <option value="360">🔄 6시간마다 자동 수집</option>
+              <option value="1440">🔄 24시간(1일)마다 자동 수집</option>
+            </select>
+          </div>
+
+          <div style="display: flex; gap: 8px; align-self: flex-end;">
+            <button id="btnStartScheduler" class="btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 10px 16px; font-size: 13.5px; flex: none;" onclick="onToggleScheduler(true)">
+              ▶️ 자동 수집 구동 시작
+            </button>
+            <button id="btnStopScheduler" class="btn" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 10px 16px; font-size: 13.5px; flex: none;" onclick="onToggleScheduler(false)">
+              ⏸️ 자동 수집 완전히 정지
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Telegram Settings -->
+      <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-title">
+          <span>📱</span> 스마트 텔레그램 알림 연동
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label class="checkbox-tile" style="background: transparent; border: none; padding: 0;">
+            <input type="checkbox" id="telegramEnabledInput">
+            <span style="font-size: 13.5px; font-weight: 600;">텔레그램 알림 기능 활성화</span>
+          </label>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">텔레그램 Bot Token</label>
+            <input type="password" id="telegramTokenInput" class="input-text" placeholder="123456789:ABCdefGHI...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">텔레그램 Chat ID</label>
+            <input type="text" id="telegramChatIdInput" class="input-text" placeholder="123456789">
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+          <button type="button" class="btn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; padding: 8px 16px; font-size: 13px;" onclick="onTestTelegramClick()">
+            📱 텔레그램 발송 테스트 (Send Test Message)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-bar">
+      <button id="btnExecute" class="btn btn-primary" onclick="onExecuteClick()">
+        <span class="spinner" id="executeSpinner"></span>
+        <span id="executeBtnText">🚀 즉시 수집 실행 (Run Now)</span>
+      </button>
+
+      <button id="btnSave" class="btn btn-secondary" onclick="onSaveClick()">
+        <span>💾 설정 저장하기</span>
+      </button>
+    </div>
+
+    <!-- Console Log Window -->
+    <div class="card">
+      <div class="console-header">
+        <div class="card-title" style="margin: 0;">
+          <span>💻</span> 실시간 수집/AI 분석 콘솔 로그 (Live Console)
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnStop" class="btn btn-danger" style="padding: 4px 12px; font-size: 12px; min-width: auto; flex: none;" onclick="onStopClick()">🛑 강제 중단 (Stop)</button>
+          <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; min-width: auto; flex: none;" onclick="clearConsole()">Clear Log</button>
+        </div>
+      </div>
+      <div class="console-box" id="consoleBox">
+        <div class="log-line log-info">🚀 대시���드 준비 완료. PDF &amp; DOC 문서 자동 생성을 지원합니다.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  var SITE_KEYS = [
+    "교보증권",
+    "미래에셋증권",
+    "한경 컨센서스",
+    "네이버_기업분석",
+    "네이버_산업분석",
+    "네이버_경제분석",
+    "네이버_시장분석",
+    "네이버_투자정보"
+  ];
+
+  var pollTimer = null;
+  var currYear = new Date().getFullYear();
+  var currMonth = new Date().getMonth() + 1;
+  var selectedSector = "ALL";
+  var cachedCalendarResData = null;
+
+  window.onload = function() {
+    renderSiteCheckboxes({});
+    loadConfigFromServer();
+    // Render calendar immediately on startup since Calendar is the primary main view!
+    renderCalendar(currYear, currMonth);
+  };
+
+  function switchTab(tabName) {
+    document.querySelectorAll(".tab-btn").forEach(function(btn) { btn.classList.remove("active"); });
+    document.querySelectorAll(".tab-content").forEach(function(content) { content.classList.remove("active"); });
+
+    if (tabName === "calendar") {
+      document.querySelectorAll(".tab-btn")[0].classList.add("active");
+      document.getElementById("tabCalendar").classList.add("active");
+      renderCalendar(currYear, currMonth);
+    } else if (tabName === "dashboard") {
+      document.querySelectorAll(".tab-btn")[1].classList.add("active");
+      document.getElementById("tabDashboard").classList.add("active");
+    }
+  }
+
+  function renderSiteCheckboxes(selectedMap) {
+    var container = document.getElementById("sitesContainer");
+    container.innerHTML = "";
+    SITE_KEYS.forEach(function(key) {
+      var isChecked = selectedMap[key] !== undefined ? selectedMap[key] : true;
+      var tile = document.createElement("label");
+      tile.className = "checkbox-tile";
+      tile.innerHTML = '<input type="checkbox" id="site_' + key + '" ' + (isChecked ? 'checked' : '') + '>' +
+                        '<span>' + key.replace("_", " ") + '</span>';
+      container.appendChild(tile);
+    });
+  }
+
+  function loadConfigFromServer() {
+    appendLog("⚙️ 서버 설정 로딩 중...");
+    google.script.run
+      .withSuccessHandler(function(config) {
+        populateForm(config);
+        appendLog("✅ 서버 환경설정 로드 완료");
+      })
+      .withFailureHandler(function(err) {
+        appendLog("❌ 설정 로드 오류: " + err);
+      })
+      .getAppConfig();
+  }
+
+  function populateForm(config) {
+    document.getElementById("enableReportDownloadInput").checked = config.enable_report_download !== false;
+    document.getElementById("enableAiSummaryInput").checked = config.enable_ai_summary !== false;
+
+    renderSiteCheckboxes(config.selected_sites || {});
+
+    document.getElementById("geminiApiKeyInput").value = config.gemini_api_key || "";
+    document.getElementById("geminiModelSelect").value = config.gemini_model || "gemini-flash-latest";
+    document.getElementById("customPromptInput").value = config.custom_prompt || "";
+    document.getElementById("saveFolderIdInput").value = config.save_folder_id || config.save_folder_name || "";
+    document.getElementById("summaryFolderIdInput").value = config.summary_folder_id || config.summary_folder_name || "";
+    document.getElementById("useDateFolderInput").checked = config.use_date_folder !== false;
+    document.getElementById("intervalMinutesSelect").value = (config.interval_minutes || 0).toString();
+
+    var dateMode = config.date_mode || "today";
+    if (dateMode === "single") document.getElementById("dateModeSingle").checked = true;
+    else if (dateMode === "range") document.getElementById("dateModeRange").checked = true;
+    else document.getElementById("dateModeToday").checked = true;
+
+    var todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById("singleDateInput").value = config.single_date || todayStr;
+    document.getElementById("startDateInput").value = config.start_date || todayStr;
+    document.getElementById("endDateInput").value = config.end_date || todayStr;
+
+    onDateModeChange();
+
+    document.getElementById("telegramEnabledInput").checked = config.telegram_enabled !== false;
+    document.getElementById("telegramTokenInput").value = config.telegram_token || "";
+    document.getElementById("telegramChatIdInput").value = config.telegram_chat_id || "";
+
+    updateTriggerStatusBadge(parseInt(config.interval_minutes || 0, 10));
+  }
+
+  function gatherFormConfig() {
+    var selected_sites = {};
+    SITE_KEYS.forEach(function(key) {
+      var elem = document.getElementById("site_" + key);
+      selected_sites[key] = elem ? elem.checked : false;
+    });
+
+    var date_mode = "today";
+    if (document.getElementById("dateModeSingle").checked) date_mode = "single";
+    else if (document.getElementById("dateModeRange").checked) date_mode = "range";
+
+    var saveVal = document.getElementById("saveFolderIdInput").value.trim();
+    var summaryVal = document.getElementById("summaryFolderIdInput").value.trim();
+
+    return {
+      enable_report_download: document.getElementById("enableReportDownloadInput").checked,
+      enable_ai_summary: document.getElementById("enableAiSummaryInput").checked,
+      gemini_api_key: document.getElementById("geminiApiKeyInput").value.trim(),
+      gemini_model: document.getElementById("geminiModelSelect").value,
+      custom_prompt: document.getElementById("customPromptInput").value.trim(),
+      save_folder_id: saveVal,
+      save_folder_name: saveVal || "증권사별리포트",
+      summary_folder_id: summaryVal,
+      summary_folder_name: summaryVal || "증권리포트_요약집",
+      use_date_folder: document.getElementById("useDateFolderInput").checked,
+      interval_minutes: parseInt(document.getElementById("intervalMinutesSelect").value, 10),
+      selected_sites: selected_sites,
+      date_mode: date_mode,
+      single_date: document.getElementById("singleDateInput").value,
+      start_date: document.getElementById("startDateInput").value,
+      end_date: document.getElementById("endDateInput").value,
+      telegram_enabled: document.getElementById("telegramEnabledInput").checked,
+      telegram_token: document.getElementById("telegramTokenInput").value.trim(),
+      telegram_chat_id: document.getElementById("telegramChatIdInput").value.trim()
+    };
+  }
+
+  function onDateModeChange() {
+    var singleRow = document.getElementById("singleDateRow");
+    var rangeRow = document.getElementById("rangeDateRow");
+
+    if (document.getElementById("dateModeSingle").checked) {
+      singleRow.style.display = "flex";
+      rangeRow.style.display = "none";
+    } else if (document.getElementById("dateModeRange").checked) {
+      singleRow.style.display = "none";
+      rangeRow.style.display = "flex";
+    } else {
+      singleRow.style.display = "none";
+      rangeRow.style.display = "none";
+    }
+  }
+
+  function onIntervalSelectChange() {
+    var val = parseInt(document.getElementById("intervalMinutesSelect").value, 10);
+    updateTriggerStatusBadge(val);
+  }
+
+  function updateTriggerStatusBadge(minutes) {
+    var textElem = document.getElementById("triggerStatusText");
+    if (minutes > 0) {
+      textElem.innerText = "🟢 " + minutes + "분 주기 백그라운드 자동 수집 구동 중";
+    } else {
+      textElem.innerText = "🔴 자동 수집 정지됨 (수동 전용)";
+    }
+  }
+
+  function onTestTelegramClick() {
+    var config = gatherFormConfig();
+    if (!config.telegram_enabled) {
+      alert("⚠️ 텔레그램 알림 기능이 비활성화 상태입니다. 체크박스를 활성화 후 시도하세요.");
+      return;
+    }
+    if (!config.telegram_token || !config.telegram_chat_id) {
+      alert("⚠️ 텔레그램 Bot Token 및 Chat ID를 먼저 입력해주세요.");
+      return;
+    }
+
+    appendLog("📱 텔레그램 알림 발송 테스트를 진행합니다...");
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (res && res.success) {
+          alert("✅ 텔레그램 테스트 메시지가 성공적으로 전송되었습니다!\n텔레그램 앱을 확인해보세요.");
+          appendLog("✅ 텔레그램 발송 테스트 성공! 텔레그램 메세지가 정상 전송되었습니다.");
+        } else {
+          var errStr = (res && res.error) ? res.error : "알 수 없는 응답 에러";
+          alert("❌ 텔레그램 발송 실패:\n" + errStr + "\n\n💡 팁: 텔레그램 봇 대화창에서 /start 를 누른 후 Chat ID를 정확히 입력했는지 확인해주세요.");
+          appendLog("❌ 텔레그램 발송 실패: " + errStr);
+        }
+      })
+      .withFailureHandler(function(err) {
+        alert("❌ 텔레그램 서버 통신 오류: " + err);
+        appendLog("❌ 텔레그램 서버 통신 오류: " + err);
+      })
+      .testTelegramNotification(config);
+  }
+
+  function onToggleScheduler(enable) {
+    var config = gatherFormConfig();
+    google.script.run
+      .withSuccessHandler(function() {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            appendLog(res.message);
+            updateTriggerStatusBadge(res.interval);
+            document.getElementById("intervalMinutesSelect").value = res.interval.toString();
+            alert(res.message);
+          })
+          .withFailureHandler(function(err) {
+            appendLog("❌ 스케줄러 설정 오류: " + err);
+          })
+          .toggleScheduler(enable);
+      })
+      .saveAppConfig(config);
+  }
+
+  function onSaveClick() {
+    var config = gatherFormConfig();
+    appendLog("💾 설정을 서버에 저장 중...");
+    google.script.run
+      .withSuccessHandler(function(savedConfig) {
+        appendLog("✅ 환경설정 저장 성공!");
+        updateTriggerStatusBadge(savedConfig.interval_minutes);
+      })
+      .withFailureHandler(function(err) {
+        appendLog("❌ 저장 실패: " + err);
+      })
+      .saveAppConfig(config);
+  }
+
+  function onExecuteClick() {
+    var config = gatherFormConfig();
+    var enableDownload = config.enable_report_download !== false;
+    var enableAiSummary = config.enable_ai_summary !== false;
+
+    if (!enableDownload && !enableAiSummary) {
+      alert("⚠️ 실행할 기능(리포트 다운로드 수집 또는 AI 요약 분석)을 최소 1개 이상 체크해 주세요.");
+      return;
+    }
+
+    var btn = document.getElementById("btnExecute");
+    var spinner = document.getElementById("executeSpinner");
+    var btnText = document.getElementById("executeBtnText");
+
+    var runningText = "🚀 백그라운드 작업 진행 중...";
+    var startLogMsg = "🚀 [즉시 실행] 설정을 저장하고 작업을 시작합니다...";
+
+    if (enableDownload && enableAiSummary) {
+      runningText = "🚀 백그라운드 수집 및 AI 요약 중...";
+      startLogMsg = "🚀 [즉시 실행] 설정을 저장하고 증권사 리포트 다운로드 및 Gemini AI 요약 작업을 시작합니다...";
+    } else if (enableDownload) {
+      runningText = "📥 백그라운드 리포트 수집 중...";
+      startLogMsg = "🚀 [즉시 실행] 설정을 저장하고 증권사 리포트 다운로드 수집 작업을 시작합니다...";
+    } else if (enableAiSummary) {
+      runningText = "🤖 백그라운드 AI 요약 분석 중...";
+      startLogMsg = "🚀 [즉시 실행] 설정을 저장하고 Gemini AI 요약 분석 작업을 시작합니다...";
+    }
+
+    btn.disabled = true;
+    spinner.style.display = "inline-block";
+    btnText.innerText = runningText;
+
+    clearConsole();
+    appendLog(startLogMsg);
+
+    google.script.run
+      .withSuccessHandler(function() {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            appendLog("⚡ 구글 서버에서 비동기 작업 스레드가 시작되었습니다. (실시간 작업 상태를 조회합니다...)");
+            startLogPolling();
+          })
+          .withFailureHandler(function(err) {
+            btn.disabled = false;
+            spinner.style.display = "none";
+            btnText.innerText = "🚀 즉시 수집 실행 (Run Now)";
+            appendLog("❌ 실행 요청 실패: " + err);
+          })
+          .executeNow();
+      })
+      .saveAppConfig(config);
+  }
+
+  function onStopClick() {
+    appendLog("🛑 [강제 중단 요청] 진행 중인 수집/AI 요약분석 작업에 중단 신호를 보냅니다...");
+    google.script.run
+      .withSuccessHandler(function(res) {
+        appendLog("🛑 [중단 요청 전달 완수] 다음 수집/요약 단계에서 서버 작업이 즉시 정지됩니다.");
+      })
+      .withFailureHandler(function(err) {
+        appendLog("❌ 중단 요청 실패: " + err);
+      })
+      .requestStop();
+  }
+
+  var sameLogMs = 0;
+  var lastLogCount = 0;
+
+  function startLogPolling() {
+    sameLogMs = 0;
+    lastLogCount = 0;
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(pollLogs, 1500);
+  }
+
+  function stopLogPolling(customMsg) {
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+    var btn = document.getElementById("btnExecute");
+    var spinner = document.getElementById("executeSpinner");
+    var btnText = document.getElementById("executeBtnText");
+
+    if (btn) btn.disabled = false;
+    if (spinner) spinner.style.display = "none";
+    if (btnText) btnText.innerText = "🚀 즉시 수집 실행 (Run Now)";
+
+    if (customMsg) {
+      appendLog(customMsg);
+    } else {
+      appendLog("🎉 [작업 완료] 구글 서버 백그라운드 작업이 성공적으로 완수되었습니다!");
+    }
+
+    // ⚡ [달력 자동 새로고침] 수집 및 AI 요약 완료 시 달력 인덱스 자동 갱신 및 재렌더링
+    renderCalendar(currYear, currMonth);
+  }
+
+  function pollLogs() {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (res && res.logs) {
+          renderLogs(res.logs);
+          if (res.logs.length === lastLogCount) {
+            sameLogMs += 1500;
+          } else {
+            sameLogMs = 0;
+            lastLogCount = res.logs.length;
+          }
+        }
+
+        if (res && res.running === false) {
+          stopLogPolling();
+        } else if (sameLogMs > 40000) {
+          // 40초 동안 로그 변동이 없으면 구글 서버 작업 완료/시간제한 상태로 간주하여 자동 정돈
+          stopLogPolling("ℹ️ [상태 감지] 구글 서버 스레드 작업이 완료되었거나 5분 안전 실행 시간제한에 도달하였습니다.");
+        }
+      })
+      .withFailureHandler(function(err) {
+        // ignore
+      })
+      .getExecutionLogs();
+  }
+
+  function renderLogs(logsArray) {
+    var consoleBox = document.getElementById("consoleBox");
+    var threshold = 60;
+    var isAtBottom = (consoleBox.scrollHeight - consoleBox.scrollTop - consoleBox.clientHeight) <= threshold;
+    if (consoleBox.children.length === 0) isAtBottom = true;
+    var prevScrollTop = consoleBox.scrollTop;
+
+    consoleBox.innerHTML = "";
+    logsArray.forEach(function(msg) {
+      var line = document.createElement("div");
+      line.className = "log-line";
+
+      if (msg.indexOf("✅") !== -1 || msg.indexOf("성공") !== -1) line.className += " log-success";
+      else if (msg.indexOf("⚠️") !== -1 || msg.indexOf("스킵") !== -1) line.className += " log-warning";
+      else if (msg.indexOf("❌") !== -1 || msg.indexOf("오류") !== -1 || msg.indexOf("실패") !== -1 || msg.indexOf("🛑") !== -1) line.className += " log-error";
+      else line.className += " log-info";
+
+      line.innerText = msg;
+      consoleBox.appendChild(line);
+    });
+
+    if (isAtBottom) {
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+    } else {
+      consoleBox.scrollTop = prevScrollTop;
+    }
+  }
+
+  function appendLog(msg) {
+    var consoleBox = document.getElementById("consoleBox");
+    var threshold = 60;
+    var isAtBottom = (consoleBox.scrollHeight - consoleBox.scrollTop - consoleBox.clientHeight) <= threshold;
+
+    var line = document.createElement("div");
+    line.className = "log-line log-info";
+    line.innerText = msg;
+    consoleBox.appendChild(line);
+
+    if (isAtBottom) {
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
+  }
+
+  function clearConsole() {
+    document.getElementById("consoleBox").innerHTML = "";
+  }
+
+  /* Calendar Logic & Sector Filter */
+  function changeMonth(delta) {
+    currMonth += delta;
+    if (currMonth > 12) {
+      currMonth = 1;
+      currYear++;
+    } else if (currMonth < 1) {
+      currMonth = 12;
+      currYear--;
+    }
+    renderCalendar(currYear, currMonth);
+  }
+
+  function goToToday() {
+    var now = new Date();
+    currYear = now.getFullYear();
+    currMonth = now.getMonth() + 1;
+    renderCalendar(currYear, currMonth);
+  }
+
+  function filterCalendarSector(secName) {
+    selectedSector = secName;
+    document.querySelectorAll(".sector-chip").forEach(function(chip) { chip.classList.remove("active"); });
+
+    var targetId = "chip_" + (secName === "ALL" ? "ALL" : secName.replace("/", ""));
+    var elem = document.getElementById(targetId);
+    if (elem) elem.classList.add("active");
+
+    if (cachedCalendarResData) {
+      buildCalendarGrid(currYear, currMonth, cachedCalendarResData);
+    } else {
+      renderCalendar(currYear, currMonth);
+    }
+  }
+
+  function renderCalendar(year, month) {
+    document.getElementById("calendarTitle").innerText = "📅 " + year + "년 " + month + "월";
+
+    google.script.run
+      .withSuccessHandler(function(resData) {
+        cachedCalendarResData = resData || {};
+        buildCalendarGrid(year, month, cachedCalendarResData);
+      })
+      .withFailureHandler(function(err) {
+        // ignore
+      })
+      .getCalendarData(year, month);
+  }
+
+  function onSyncCalendarClick() {
+    var grid = document.getElementById("calendarGrid");
+    grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--accent-cyan); padding: 20px;">🔄 구글 드라이브 일별 수집 폴더 인덱스 실시간 동기화 중...</div>';
+    
+    google.script.run
+      .withSuccessHandler(function(res) {
+        alert("✅ 달력 인덱스 동기화 완료!");
+        renderCalendar(currYear, currMonth);
+      })
+      .withFailureHandler(function(err) {
+        alert("❌ 동기화 실패: " + err);
+        renderCalendar(currYear, currMonth);
+      })
+      .forceRefreshCalendarIndex();
+  }
+
+  function buildCalendarGrid(year, month, resData) {
+    var summaryMap = resData.summaryMap || {};
+    var folderMap = resData.folderMap || {};
+
+    var grid = document.getElementById("calendarGrid");
+    grid.innerHTML = "";
+
+    var firstDayIndex = new Date(year, month - 1, 1).getDay();
+    var totalDays = new Date(year, month, 0).getDate();
+
+    var now = new Date();
+    var todayStr = now.getFullYear() + "-" +
+      ((now.getMonth() + 1) < 10 ? "0" + (now.getMonth() + 1) : (now.getMonth() + 1)) + "-" +
+      (now.getDate() < 10 ? "0" + now.getDate() : now.getDate());
+
+    for (var e = 0; e < firstDayIndex; e++) {
+      var emptyCell = document.createElement("div");
+      emptyCell.className = "cal-cell empty";
+      grid.appendChild(emptyCell);
+    }
+
+    for (var day = 1; day <= totalDays; day++) {
+      var dateKey = year + "-" + (month < 10 ? "0" + month : month) + "-" + (day < 10 ? "0" + day : day);
+      var isToday = (dateKey === todayStr);
+
+      var cell = document.createElement("div");
+      cell.className = "cal-cell" + (isToday ? " today-cell" : "");
+      cell.id = "cal_cell_" + dateKey;
+
+      // 100% Flexbox Layout for Header Row (ZERO Overlap Guarantee)
+      var cellHeader = document.createElement("div");
+      cellHeader.className = "cell-header-row";
+
+      var dayInfoBox = document.createElement("div");
+      dayInfoBox.className = "day-info-box";
+
+      var numSpan = document.createElement("span");
+      numSpan.className = "cal-day-num" + (isToday ? " today" : "");
+      numSpan.innerText = day + "일";
+      dayInfoBox.appendChild(numSpan);
+
+      if (isToday) {
+        var todayBadge = document.createElement("span");
+        todayBadge.className = "today-badge";
+        todayBadge.innerText = "☀️ TODAY";
+        dayInfoBox.appendChild(todayBadge);
+      }
+
+      cellHeader.appendChild(dayInfoBox);
+
+      var hasSummary = summaryMap[dateKey] !== undefined;
+      var hasFolder = folderMap[dateKey] !== undefined;
+      var fInfo = folderMap[dateKey] || {};
+      var secCounts = fInfo.sectorCounts || {};
+      var totalPdfCount = fInfo.totalCount || 0;
+
+      if (hasFolder && totalPdfCount > 0) {
+        var countPill = document.createElement("span");
+        countPill.className = "pdf-count-pill";
+        countPill.innerHTML = "📥 " + totalPdfCount;
+        cellHeader.appendChild(countPill);
+      }
+
+      cell.appendChild(cellHeader);
+
+      // Sector breakdown icons and emojis
+      if (hasFolder && totalPdfCount > 0) {
+        var sectorIconsDiv = document.createElement("div");
+        sectorIconsDiv.className = "sector-icons-row";
+
+        var iconsHtml = "";
+        if (secCounts["기업분석"]) iconsHtml += '<span class="sec-icon" title="기업분석 ' + secCounts["기업분석"] + '건">🏢 ' + secCounts["기업분석"] + '</span>';
+        if (secCounts["산업/업종"]) iconsHtml += '<span class="sec-icon" title="산업/업종 ' + secCounts["산업/업종"] + '건">🏭 ' + secCounts["산업/업종"] + '</span>';
+        if (secCounts["거시경제"]) iconsHtml += '<span class="sec-icon" title="거시경제 ' + secCounts["거시경제"] + '건">🌐 ' + secCounts["거시경제"] + '</span>';
+        if (secCounts["증시전략"]) iconsHtml += '<span class="sec-icon" title="증시전략 ' + secCounts["증시전략"] + '건">📈 ' + secCounts["증시전략"] + '</span>';
+        if (secCounts["투자정보"]) iconsHtml += '<span class="sec-icon" title="투자정보 ' + secCounts["투자정보"] + '건">💡 ' + secCounts["투자정보"] + '</span>';
+
+        sectorIconsDiv.innerHTML = iconsHtml;
+        cell.appendChild(sectorIconsDiv);
+      }
+
+      // Minimal Icon Toolbar (글자 전면 제거, 순수 이모지/아이콘 전용 툴바)
+      var btnBox = document.createElement("div");
+      btnBox.id = "cal_actions_" + dateKey;
+      btnBox.className = "icon-toolbar";
+
+      var showCellActions = (selectedSector === "ALL") ? (hasFolder || hasSummary) : ((secCounts[selectedSector] || 0) > 0 || hasSummary);
+
+      if (showCellActions) {
+        // 1. 📄 PDF 버튼
+        if (hasSummary) {
+          var item = summaryMap[dateKey];
+          var pdfBadge = document.createElement("a");
+          pdfBadge.className = "icon-btn pdf-btn";
+          pdfBadge.href = item.url;
+          pdfBadge.target = "_blank";
+          pdfBadge.title = "📄 PDF 요약집 보기";
+          pdfBadge.innerText = "📄";
+          btnBox.appendChild(pdfBadge);
+
+          // 2. 📝 MD 마크다운 요약문서 버튼
+          if (item.mdUrl || item.docUrl) {
+            var docBadge = document.createElement("a");
+            docBadge.className = "icon-btn doc-btn";
+            docBadge.href = item.mdUrl || item.docUrl;
+            docBadge.target = "_blank";
+            docBadge.title = "📝 MD 마크다운 요약문서 보기";
+            docBadge.innerText = "📝";
+            btnBox.appendChild(docBadge);
+          }
+        }
+
+        // 3. 📁 수집 폴더 버튼 (해당 일자 수집 폴더 및 수집 리포트가 실제 존재하는 경우에만 노출)
+        if (hasFolder && folderMap[dateKey] && totalPdfCount > 0) {
+          var folderBadge = document.createElement("a");
+          folderBadge.className = "icon-btn folder-btn";
+          folderBadge.href = folderMap[dateKey].url;
+          folderBadge.target = "_blank";
+          folderBadge.title = "📁 " + dateKey + " 리포트 수집 폴더 열기";
+          folderBadge.innerText = "📁";
+          btnBox.appendChild(folderBadge);
+        }
+
+        // 4. 🤖 / 🔄 Gemini AI 요약 분석 버튼 (해당 일자 수집 폴더 및 리포트가 1개 이상 있는 경우에만 노출)
+        if (hasFolder && totalPdfCount > 0) {
+          var actionBtn = document.createElement("button");
+          actionBtn.className = "icon-btn action-btn";
+          actionBtn.title = hasSummary ? "🔄 Gemini AI 요약 갱신" : "🤖 Gemini AI 요약 생성";
+          actionBtn.innerText = hasSummary ? "🔄" : "🤖";
+          actionBtn.onclick = (function(dKey) {
+            return function() { onRegenerateClick(dKey); };
+          })(dateKey);
+          btnBox.appendChild(actionBtn);
+        }
+      }
+
+      cell.appendChild(btnBox);
+      grid.appendChild(cell);
+    }
+  }
+
+  function onRegenerateClick(dateStr) {
+    var btnBox = document.getElementById("cal_actions_" + dateStr);
+    if (btnBox) {
+      btnBox.innerHTML = '<div style="font-size: 10px; color: #38bdf8; text-align: center; padding: 2px;">🤖 요약 중...</div>';
+    }
+
+    clearConsole();
+    appendLog("🤖 [" + dateStr + "] 해당 일자 수집된 PDF 리포트 전체를 소스로 Gemini AI 요약 분석(PDF & DOC 생성)을 시작합니다...");
+    appendLog("💡 메인 설정의 Gemini API Key 및 맞춤 프롬프트를 반영하여 분석합니다.");
+    startLogPolling();
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        stopLogPolling();
+        if (res && res.success) {
+          appendLog("✅ [" + dateStr + "] Gemini AI PDF 및 DOC 요약 문서 작성이 완료되었습니다!");
+        } else {
+          alert("⚠️ " + ((res && res.error) ? res.error : "요약 생성 실패"));
+        }
+        renderCalendar(currYear, currMonth);
+      })
+      .withFailureHandler(function(err) {
+        stopLogPolling();
+        alert("❌ 요청 예외: " + err);
+        renderCalendar(currYear, currMonth);
+      })
+      .regenerateSummaryForDate(dateStr);
+  }
+
+  function loadCalendarData(callback) {
+    renderCalendar(currYear, currMonth);
+    if (typeof callback === 'function') callback();
+  }
+</script>
+
+</body>
+</html>

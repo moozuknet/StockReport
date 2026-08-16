@@ -16,6 +16,17 @@ Playwright 기반의 자동화 엔진과 PyQt5 DirectWrite 엔진을 탑재하�
 
 ---
 
+### 🎯 기능 분리 체크박스 제어 & AI 분석 요약
+- 📥 **리포트 다운로드 수집 기능**: 선택 시 증권사 사이트에서 PDF 리포트 다운로드
+- 🤖 **AI 분석 및 요약 기능**: Google Gemini REST API (`gemini-2.5-flash`) 또는 자체 텍스트 추출 엔진으로 종합 마크다운 요약 리포트(`AI_Report_Summary_YYYYMMDD.md`) 자동 생성
+- ⚡ **자유로운 조합 선택**: 다운로드만, AI 요약만, 또는 둘 다 체크하여 원하는 작업만 즉시 실행 및 백그라운드 스케줄링 연동
+
+### ☁️ 구글 앱스 스크립트 (GAS) 버전 지원
+- 윈도우 GUI 버전뿐만 아니라 **Google Apps Script (`gas/Code.gs`)** 지원
+- 구글 스프레드시트 커스텀 메뉴, 모달 설정 UI 및 구글 드라이브/Gemini API/텔레그램 자동 연동
+
+---
+
 ## ✨ 2. 주요 기능 분석 (Feature Breakdown)
 
 ### 🏢 8개 수집 대상 사이트 통합 지원
