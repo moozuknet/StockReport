@@ -1279,9 +1279,10 @@
 
         if (res && res.running === false) {
           stopLogPolling();
-        } else if (sameLogMs > 40000) {
-          // 40초 동안 로그 변동이 없으면 구글 서버 작업 완료/시간제한 상태로 간주하여 자동 정돈
-          stopLogPolling("ℹ️ [상태 감지] 구글 서버 스레드 작업이 완료되었거나 5분 안전 실행 시간제한에 도달하였습니다.");
+        } else {
+          if (sameLogMs > 300000) {
+            stopLogPolling("ℹ️ [상태 감지] 구글 서버 작업 실행 시간 한계(5분)에 도달하였습니다.");
+          }
         }
       })
       .withFailureHandler(function(err) {

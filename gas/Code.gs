@@ -223,7 +223,9 @@ function runStockReportScheduled() {
 
 function runStockReportManualTask() {
   clearManualTaskTriggers();
+  setRunningFlag(true);
   try {
+    logMessage("⚡ [구글 서버 스레드 가동] 수집 프로세스를 정상적으로 시작합니다...");
     runStockReport(false);
   } catch (e) {
     logMessage("❌ [작업 실패 예외] " + e.toString());
@@ -250,7 +252,10 @@ function executeNow() {
   if (enableDownload && !enableAiSummary) taskName = "리포트 다운로드 수집";
   else if (!enableDownload && enableAiSummary) taskName = "Gemini AI 요약 분석";
 
-  saveRecentLogs(["🚀 [즉시 실행 요청] " + taskName + " 작업을 구글 서버 백그라운드에서 시작합니다..."]);
+  saveRecentLogs([
+    "🚀 [즉시 실행 요청] " + taskName + " 작업을 구글 서버 백그라운드에서 시작합니다...",
+    "⏳ [구글 서버 엔진] 비동기 작업 트리거를 예약 중입니다 (약 5~15초 내 자동 시작)..."
+  ]);
   setRunningFlag(true);
   clearStopRequested();
 
