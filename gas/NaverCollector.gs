@@ -7,12 +7,12 @@ var NAVER_CATEGORIES = [
   { sub_url: "company_list.naver", config_key: "네이버_기업분석", display_name: "기업분석" },
   { sub_url: "industry_list.naver", config_key: "네이버_산업분석", display_name: "산업분석" },
   { sub_url: "economy_list.naver", config_key: "네이버_경제분석", display_name: "경제분석" },
-  { sub_url: "market_special_list.naver", config_key: "네이버_시장분석", display_name: "시장분석" },
+  { sub_url: "market_info_list.naver", config_key: "네이버_시장분석", display_name: "시장분석" },
   { sub_url: "invest_list.naver", config_key: "네이버_투자정보", display_name: "투자정보" }
 ];
 
 function fetchNaverCategory(catInfo, saveFolder, targetDt, logFn, maxPages, folderCache) {
-  if (maxPages === undefined) maxPages = 1;
+  if (maxPages === undefined) maxPages = 20;
 
   var naverDateStr = Utilities.formatDate(targetDt, "Asia/Seoul", "yy.MM.dd");
   logFn("🔍 > [네이버 " + catInfo.display_name + "] 탐색 시작 (" + naverDateStr + ")...");
@@ -44,6 +44,8 @@ function fetchNaverCategory(catInfo, saveFolder, targetDt, logFn, maxPages, fold
       var trMatches = html.match(/<tr[\s\S]*?<\/tr>/gi);
       if (!trMatches || trMatches.length === 0) break;
 
+      var foundToday = false;
+
       for (var i = 0; i < trMatches.length; i++) {
         if (typeof isStopRequested === "function" && isStopRequested()) {
           logFn("🛑 [네이버 " + catInfo.display_name + "] 강제 중단됨.");
@@ -58,6 +60,8 @@ function fetchNaverCategory(catInfo, saveFolder, targetDt, logFn, maxPages, fold
         var rowDate = dateMatch[1];
         if (rowDate !== naverDateStr) continue;
 
+        foundToday = true;
+
         var tdMatches = trHtml.match(/<td[\s\S]*?<\/td>/gi);
         if (!tdMatches || tdMatches.length < 3) continue;
 
@@ -69,6 +73,18 @@ function fetchNaverCategory(catInfo, saveFolder, targetDt, logFn, maxPages, fold
         if (catInfo.display_name === "기업분석") {
           var prefixMatch = tdMatches[0].match(/<a[^>]*>([\s\S]*?)<\/a>/i);
           prefix = prefixMatch ? stripTags(prefixMatch[1]) : "기업";
+
+          var titleMatch = tdMatches[1].match(/<a[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/i);
+          if (titleMatch) {
+            detailHref = titleMatch[1];
+            title = stripTags(titleMatch[2]);
+            var titleAttrMatch = titleMatch[0].match(/title=["']([^"']+)["']/i);
+            if (titleAttrMatch && titleAttrMatch[1].trim()) {
+              title = titleAttrMatch[1].trim();
+            }
+          }
+        } else if (catInfo.display_name === "산업분석") {
+          prefix = stripTags(tdMatches[0]) || "산업";
 
           var titleMatch = tdMatches[1].match(/<a[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/i);
           if (titleMatch) {
@@ -152,6 +168,8 @@ function fetchNaverCategory(catInfo, saveFolder, targetDt, logFn, maxPages, fold
           logFn("❌ [다운로드 실패] " + fileName + ": " + e.toString());
         }
       }
+
+      if (!foundToday) break;
     } catch (e) {
       logFn("⚠️ 네이버 " + catInfo.display_name + " 수집 오류: " + e.toString());
       break;

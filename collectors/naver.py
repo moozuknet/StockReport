@@ -12,7 +12,7 @@ NAVER_CATEGORIES: List[Tuple[str, str, str]] = [
     ("company_list.naver", "네이버_기업분석", "기업분석"),
     ("industry_list.naver", "네이버_산업분석", "산업분석"),
     ("economy_list.naver", "네이버_경제분석", "경제분석"),
-    ("market_special_list.naver", "네이버_시장분석", "시장분석"),
+    ("market_info_list.naver", "네이버_시장분석", "시장분석"),
     ("invest_list.naver", "네이버_투자정보", "투자정보")
 ]
 
@@ -38,7 +38,7 @@ class NaverCollector(BaseCollector):
         download_count = 0
         page = 1
 
-        while page <= 5:
+        while page <= 20:
             try:
                 resp = session.get(base_url, params={"page": page}, timeout=15)
                 soup = BeautifulSoup(resp.text, "html.parser")
@@ -46,6 +46,8 @@ class NaverCollector(BaseCollector):
                 rows = soup.select("table.type_1 tr")
                 if not rows:
                     break
+
+                found_today = False
 
                 for row in rows:
                     cols = row.select("td")
@@ -60,10 +62,14 @@ class NaverCollector(BaseCollector):
                     date_text = date_match.group(1)
 
                     if date_text == today_str:
+                        found_today = True
 
                         if self.display_name == "기업분석":
                             prefix_a = cols[0].select_one("a")
                             prefix = prefix_a.get_text(strip=True) if prefix_a else "기업"
+                            title_a = cols[1].select_one("a")
+                        elif self.display_name == "산업분석":
+                            prefix = cols[0].get_text(" ", strip=True) or "산업"
                             title_a = cols[1].select_one("a")
                         else:
                             prefix = self.display_name.replace("분석", "")
@@ -124,6 +130,9 @@ class NaverCollector(BaseCollector):
                                 f.write(pdf_resp.content)
                             log_fn(f"✅  [성공] {filename}")
                             download_count += 1
+
+                if not found_today:
+                    break
 
                 page += 1
             except Exception as e:
