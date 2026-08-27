@@ -108,9 +108,14 @@ function fetchNaverCategory(catInfo, saveFolder, targetDt, logFn, maxPages, fold
           }
         }
 
-        var pdfMatch = trHtml.match(/<a[^>]*href=["']([^"']+\.pdf)["']/i);
+        var pdfMatch = trHtml.match(/<a[^>]*href=["']([^"']*(?:\.pdf|pstatic\.net)[^"']*)["']/i);
         if (pdfMatch) {
           pdfHref = pdfMatch[1];
+        } else {
+          var fallbackMatch = trHtml.match(/<td[^>]*class=["'][^"']*file[^"']*["'][^>]*>[\s\S]*?<a[^>]*href=["']([^"']+)["']/i);
+          if (fallbackMatch) {
+            pdfHref = fallbackMatch[1];
+          }
         }
 
         if (!title || !pdfHref) continue;
